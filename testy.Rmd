@@ -1,0 +1,22 @@
+---
+title: "Praca Domowa 3 - Testy"
+author: "Piotr Luboń"
+date: "April 22, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+source('knn.R')
+```
+
+
+```{R}
+x <- matrix(1:10, nrow=10)
+y <- c(99, 1:9)
+z <- matrix(10:1, nrow=10)
+knn(x,y,z,1,1)
+knn(x,y,z,2,1)
+knn(x,y,z,3,1)
+```
