@@ -8,15 +8,99 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = TRUE)
+library(MASS)
 source('knn.R')
 ```
 
+#Opis testów
+
+Implementacja algorytmeu zostaje przetestowana na 3 zbiorach danych:
+* obserwacje z każðej klasy pochodzą z rozkładu normalnego dwuwymiarowego, o innej wartości oczekiwanej dla każdej klasy
+* obserwacje pochodzą z 10 różnych rozkładów normalnych dwuwymiarowych, których wartości oczekiwane zostały wylosowane z rozkładu normalnego
+* zbiór utworzony z kolumn _PetalLength_, _SepalLength_ i _Species_ ze zbioru danych _Iris_ z dodanym błędem o rozkładzie normalnym z małą wariancją i wartością oczekiwaną równa 0
+
+Dla każdego zbioru zostaje sprawdzone, czy w przypadku gdy zbiór testowy i treningowy są tożsame wektor etykiet zostaje odtworzony gdy _k=1_.
+
+Dla każdego zbioru danych zostaje zastosowana 5-krotna walidacja dla różnych funkcji agregujących i wartości _k_ i _p_. Otrzymane w ten sposób etykiety zostają przedstawione na wykresie.
+
+#Zbiór I
 
 ```{R}
-x <- matrix(1:10, nrow=10)
-y <- c(99, 1:9)
-z <- matrix(10:1, nrow=10)
-knn(x,y,z,1,1)
-knn(x,y,z,2,1)
-knn(x,y,z,3,1)
+c1 <- mvrnorm(n=1000, mu=c(2,2), Sigma=matrix(nrow=2,c(1,0,0,1)))
+c1 <- cbind(rep(1, 1000), c1)
+c2 <- mvrnorm(n=1000, mu=c(-2,-2), Sigma=matrix(nrow=2,c(1,0,0,1)))
+c2 <- cbind(rep(2, 1000), c2)
+data <- rbind(c1, c2)
+plot(data[,2:ncol(data)], col=data[,1], xlab = '', ylab='')
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=1)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=2)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=Inf)==data[,1]))
+```
+
+## moda, _k=3, p=2_
+
+```{R}
+k3 <- moda(five_fold_knn(data,k=3,p=2))
+plot(data[,2:ncol(data)], col=k3, xlab = '', ylab='')
+```
+
+## minkara3.0, _k=19, p=$\inft$_
+
+```{R}
+k19 <- minkara3.0(five_fold_knn(data, k=19, p=Inf))
+plot(data[,2:ncol(data)], col=k19, xlab = '', ylab='')
+```
+
+#Zbiór II
+```{R}
+mu1 <- rnorm(10, mean = 1.5)
+mu2 <- rnorm(10, mean = -1.5)
+x1 <-  rnorm(1000, sd=0.25, mean=sample(mu1))
+y1 <-  rnorm(1000, sd=0.25, mean=sample(mu1))
+x2 <-  rnorm(1000, sd=0.25, mean=sample(mu2))
+y2 <-  rnorm(1000, sd=0.25, mean=sample(mu2))
+m1 <- cbind(1, x1, y1)
+m2 <- cbind(2, x2, y2)
+data <- rbind(m1,m2)
+plot(data[,2:3], col=data[,1])
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=1)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=2)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=Inf)==data[,1]))
+```
+
+## minkara3.0, _k=5, p=2_
+
+```{R}
+k5 <- minkara1.5(five_fold_knn(data,k=5,p=2))
+plot(data[,2:ncol(data)], col=k5, xlab = '', ylab='')
+```
+
+## srednia_A, _k=9, p=1_
+
+```{R}
+k9 <- srednia_a(five_fold_knn(data, k=9, p=1))
+plot(data[,2:ncol(data)], col=k9, xlab = '', ylab='')
+```
+
+##Zbiór III
+```{R}
+plot(iris$Sepal.Length, iris$Petal.Length, col=iris$Species, ylab='Petal Length', xlab='Sepal Length')
+data  <- cbind(iris$Species, iris$Sepal.Length+rnorm(ncol(iris),0,0.01), iris$Petal.Length+rnorm(ncol(iris),0,0.01))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=1)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=2)==data[,1]))
+print(all(knn(data[,2:ncol(data)], data[,1], data[,2:ncol(data)], k=1, p=Inf)==data[,1]))
+```
+
+## srednia_wazona, _k=7, p=2_
+
+```{R}
+k7 <- srednia_wazona(five_fold_knn(data,k=7,p=2))
+plot(data[,2:ncol(data)], col=k7, xlab = '', ylab='')
+```
+
+## srednia_a, _k=9, p=1_
+
+```{R}
+k9 <- srednia_a(five_fold_knn(data, k=9, p=1))
+plot(data[,2:ncol(data)], col=k9, xlab = '', ylab='')
 ```

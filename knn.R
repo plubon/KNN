@@ -85,7 +85,7 @@ err <- function(x,y)
 
 blad_bezwzgeldny <- function(x,y)
 {
-  return(mean(abs(x-y)))
+  return(as.numeric(mean(abs(unlist(x)-unlist(y)))))
 }
 
 mse <- function(x,y)
@@ -128,7 +128,9 @@ logistic_regression <- function(X, Z)
 {
   X[,1] <- factor(X[,1], ordered=TRUE)
   model <- MASS::polr(response ~ ., data = X)
-  return(predict(model, Z))
+  cols <- names(model$coefficients)
+  model <- MASS::polr(response ~ ., data = X[,c('response',cols)], start = rep(1, length(cols)*2))
+  return(predict(model, Z[,cols]))
 }
 
 naive_bayes <- function(X, Z)

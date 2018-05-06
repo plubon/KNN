@@ -1,0 +1,34 @@
+\documentclass{article}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx, subfig}
+\usepackage{float}
+\title{Praca Domowa III - Raport}
+\author{Piotr Luboń}
+\begin{document}
+\maketitle
+<<echo=FALSE, results='hide'>>=
+source('knn.R')
+source('raport_helpers.R')
+library("kableExtra")
+library('magrittr')
+set.seed(1918)
+@
+\section{Wstęp}
+\section{Wyniki eksperymentów}
+<<echo=FALSE, results='asis', fig.keep='all'>>=
+dirs <- c('abalone')
+for(dir in dirs)
+{
+  set_name <- gsub('_', ' ', dir)
+  cat('\\subsection{',set_name,'}\n')
+  comp_table <- get_comparison_dt(dir)
+  steps <- c(seq(1,ncol(comp_table),7), ncol(comp_table)+1)
+  for(i in 1:(length(steps)-1))
+  {
+    print(kable(comp_table[,steps[i]:(steps[i+1]-1)]) %>% kable_styling(latex_options="scale_down"))
+  }
+}
+@
+\section{Analiza wyników}
+\end{document}
