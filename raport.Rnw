@@ -15,20 +15,49 @@ library('magrittr')
 set.seed(1918)
 @
 \section{Wstęp}
+Raport przedstawia porówanie różnych metod dla problemu regresji porządkowej. Obliczone zostały metryki błędu dla własnej implementacji metody k-najbliższych sąsiadów dla róznych wartości parametru k, rodzaju metryki i funkcji agregujących. Zostały rozważony przypadek, w którym dane wejściowe zostają wystandaryzowane. Metoda ta została porównana z alogrytmem lasów losowych, regreją logistyczną (w przypadku zbiorów,  gdzie było to możliwe) i naiwnym klasyfikatorem bayesowskim.
 \section{Wyniki eksperymentów}
-<<echo=FALSE, results='asis', fig.keep='all'>>=
-dirs <- c('abalone')
+W tabelach przedstawione zostały metryki błędów: ERR - proporcja błędnej klasyfikacji, MAD - błąd bezwględny, MSE - błąd średniokwadratowy. Zostały one policzone dla algorytmu knn dla losowo wybranych wartości następujących parametrów: 
+\begin{enumerate}
+\item rodzaj metryki Minkowskiego
+\item liczba sąsiadów
+\item funkcja agregująca
+\end{enumerate}
+W takiej kolejnośći wartośći parametrów pojawiają się w nazwach kolumn. Został rozważony przypadek, gdy wartośći predyktorów są wystandaryzowane(nazwy kolumn zaczynające się od knn scaled). Do porównania zosały wykorzystane następujące metody: lasy losowe(rf), regresja logistyczna(polr) i naiwny klasyfikator bayesowski(nb).
+
+Dla wszystkich metod zastosowano 5-krotną kroswalidację.
+
+Na wykresach zostało przedstawiony został błąd średniokwadratowegy algorytmu knn używającego odległości  Minkowskiego rzędu 2 i mody jako funkcji agregującej względem liczby użytych sąsiadów. Czerwona linia pokazuje wartości dla przypadku, gdy dane testowe i treningowe zostały wystandaryzowane, a czarna gdy nie. 
+
+<<echo=FALSE, results='asis', fig.keep='all', cache=TRUE>>=
+dirs <- dir(file.path(getwd(), 'results'))
 for(dir in dirs)
 {
   set_name <- gsub('_', ' ', dir)
   cat('\\subsection{',set_name,'}\n')
-  comp_table <- get_comparison_dt(dir)
+  cat('\\subsubsection{','Porównanie metryk błędu','}\n')
+  data <- get_comparison_dt(dir)
+  comp_table <- data[[1]]
   steps <- c(seq(1,ncol(comp_table),7), ncol(comp_table)+1)
   for(i in 1:(length(steps)-1))
   {
     print(kable(comp_table[,steps[i]:(steps[i+1]-1)]) %>% kable_styling(latex_options="scale_down"))
   }
+  cat('\\subsubsection{','Porównanie błędu dla różnych wartośći k','}\n')
+  plot_data <- get_plot_data(dir)
+  min_lim <- min(sapply(plot_data, min))
+  max_lim <- max(sapply(plot_data, max))
+  plot(x=1:19, y=plot_data[[1]],type='o', xlab = 'k', ylab='mse', ylim = c(min_lim, max_lim))
+  lines(x=1:19, y=plot_data[[2]], type='o',col='red')
 }
 @
 \section{Analiza wyników}
+
+Dla prawie wszystkich zbiorów algorytmowi knn udaje się osiągnąc podobną skuteczność co regresji logistynczej, podobną lub gorszą niż losowym i lepszą niż naiwnemu klasyfikatorowi bayesowskiemu. Dzieje się tak jednak, przy odpowiednio dobranych parametrach i przy wystandaryzownaych danych. Przestrzeń parametrów jest jednak wystarczająco mała, aby dało się odnaleźć zadowalające ich wartości przy użyciu grid lub random search. Algorytm knn nie wymaga również wybierania początkowych wartośći współczynników, których odpowiednich dobór był problemem w przypadku regresji logistycznej.
+
+Warto również zwrócić uwagę, zę optymalana wartość k zmienia się w zależnośći od zbioru danych. W większośći przypadków zwiększenie jej powoduje poprawę skuteczności, lecz nie jest to regułą.
+
+Podobnie przejawia się wpływ standaryzacji danych - w większości przypadków poprawia on skuteczność algorytmu, lecz dla 4 z 19 zbiorów danych następuje odwrotny skutek.
+
+Tylko dla 10 z 19 zbiorów danych algorytmowi knn udało się poprawnie zaklasyfikować przynajmniej połowę próbek.
 \end{document}

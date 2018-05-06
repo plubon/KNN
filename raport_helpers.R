@@ -5,6 +5,31 @@ get_clean_file_name <- function(file)
   return(tools::file_path_sans_ext(gsub('_', ' ', file)))
 }
 
+get_plot_data <- function(dir)
+{
+  setwd('/home/piotr/Uczelnia/PdPYR/PD3/')
+  labels <- read.csv(file.path('results', dir, 'labels.csv'))
+  labels <- labels[,2:ncol(labels), drop=FALSE]
+  unscaled <- read.csv(file.path('results', dir, 'knn_2.csv'))
+  unscaled <- unscaled[,2:ncol(unscaled), drop=FALSE]
+  scaled <- read.csv(file.path('results', dir, 'knn_scaled_2.csv'))
+  scaled <- scaled[,2:ncol(scaled), drop=FALSE]
+  scaled_res <- numeric(19)
+  unscaled_res <- numeric(19)
+  for(k in 1:19)
+  {
+    res_scaled <- scaled[,1:k, drop=FALSE]
+    res_scaled <- moda(res_scaled)
+    res_unscaled <- unscaled[,1:k, drop=FALSE]
+    res_unscaled <- moda(res_unscaled)
+    mse_scaled <- mse(as.vector(res_scaled), as.vector(labels))
+    mse_unscaled <- mse(as.vector(res_unscaled), as.vector(labels))
+    scaled_res[k] <- mse_scaled
+    unscaled_res[k] <- mse_unscaled
+  }
+  return(list(unscaled_res, scaled_res))
+}
+
 get_comparison_dt  <- function(dir)
 {
   setwd('/home/piotr/Uczelnia/PdPYR/PD3/')
@@ -52,5 +77,5 @@ get_comparison_dt  <- function(dir)
       ret <- rbind(ret, to_add)
     }
   }
-  return(t(ret))
+  return(list(t(ret)))
 }
